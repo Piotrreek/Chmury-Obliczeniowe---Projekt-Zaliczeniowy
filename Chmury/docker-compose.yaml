@@ -1,0 +1,36 @@
+services:
+  web:
+    image: chmury
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+    ports:
+      - "8080:8080"
+    volumes:
+      - './wwwroot:/app/wwwroot'
+      - './Views:/app/Views'
+    networks: 
+      - backend
+  neo4j:
+    image: neo4j:latest
+    volumes:
+      - neo4j:/data
+      - neo4jlogs:/logs
+      - neo4jimport:/var/lib/neo4j/import
+      - neo4jplugins:/plugins
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    networks: 
+    - backend
+networks: 
+  backend:
+volumes: 
+  neo4j:
+  neo4jlogs:
+  neo4jimport:
+  neo4jplugins:  
+  
+    

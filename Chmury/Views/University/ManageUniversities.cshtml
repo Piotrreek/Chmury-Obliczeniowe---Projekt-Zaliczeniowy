@@ -1,0 +1,42 @@
+@model List<Chmury.Models.UniversityDto>
+<div class="content">
+    <div>
+        <h2>Istniejące uczelnie</h2>
+        <table>
+            <thead>
+            <th>Nazwa</th>
+            <th>Zobacz studentów</th>
+            <th>Zobacz profesorów</th>
+            <th>Zobacz kursy</th>
+            </thead>
+            <tbody>
+            @foreach (var u in Model)
+            {
+                <tr>
+                    <td>@u.Name</td>
+                    <td class="btn" onclick="getUniversityStudents(`@u.Name`)">Zobacz</td>
+                    <td class="btn" onclick="getUniversityProfessors(`@u.Name`)">Zobacz</td>
+                    <td class="btn" onclick="getUniversityCourses(`@u.Name`)">Zobacz</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <h2 class="see-results__heading"></h2>
+        <ul class="see-results"></ul>
+        <div class="see-results__error"></div>
+    </div>
+</div>
+<h2>Dodaj uczelnię</h2>
+<form class="add-university-form">
+    <div>
+        <label for="university-name">Nazwa</label>
+        <input id="university-name" name="university-name" class="university-name"/>
+    </div>
+    <span class="error"></span>
+    <button onclick="createUniversity()">Dodaj</button>
+    <div>
+        <span class="response-info"></span>
+    </div>
+</form>

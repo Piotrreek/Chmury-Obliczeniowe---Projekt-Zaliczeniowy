@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Chmury Obliczeniowe - Projekt Zaliczeniowy</title>
+    <link rel="stylesheet" href="/css/main.css" asp-append-version="true"/>
+</head>
+<body>
+<header>
+    <h1><a asp-controller="University" asp-action="Index">Chmury Obliczeniowe - Projekt</a></h1>
+    <ul>
+        <li>
+            <a asp-controller="University" asp-action="ManageStudents">Zarządzaj studentami</a>
+        </li>
+        <li>
+            <a asp-controller="University" asp-action="ManageProfessors">Zarządzaj profesorami</a>
+        </li>
+        <li>
+            <a asp-controller="University" asp-action="ManageCourses">Zarządzaj kursami</a>
+        </li>
+        <li>
+            <a asp-controller="University" asp-action="ManageUniversities">Zarządzaj uczelniami</a>
+        </li>
+    </ul>
+</header>
+<main>
+    @RenderBody()
+</main>
+<script src="js/main.js"></script>
+</body>
+</html>
