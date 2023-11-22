@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/.idea/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+**/logs/
+**.DotSettings.user
+**/node_modules/
+**/.futdcache.v1
+**/.suo
+**.vsidx
+**.metadata.v2
+**.projects.v2
+**/read.lock
