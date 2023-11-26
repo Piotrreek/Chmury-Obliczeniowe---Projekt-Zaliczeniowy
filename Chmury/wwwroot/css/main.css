@@ -37,6 +37,10 @@ ul {
     font-size: 20px;
 }
 
+form {
+    margin-bottom: 30px;
+}
+
 header {
     display: flex;
     justify-content: center;

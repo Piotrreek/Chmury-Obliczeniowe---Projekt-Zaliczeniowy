@@ -48,7 +48,7 @@ public class UniversityApiController(IUniversityService universityService) : Con
 
         return HandleResult(result);
     }
-    
+
     [HttpGet("{universityName:required}/professor")]
     public async Task<IActionResult> GetUniversityProfessors([FromRoute] string universityName)
     {
@@ -56,7 +56,16 @@ public class UniversityApiController(IUniversityService universityService) : Con
 
         return HandleResult(result);
     }
-    
+
+    [HttpGet("{universityName:required}/professor/{professorName:required}/course")]
+    public async Task<IActionResult> GetProfessorCourses([FromRoute] string universityName,
+        [FromRoute] string professorName)
+    {
+        var result = await _universityService.GetProfessorCourses(professorName, universityName);
+
+        return HandleResult(result);
+    }
+
     [HttpGet("{universityName:required}/course")]
     public async Task<IActionResult> GetUniversityCourses([FromRoute] string universityName)
     {
@@ -70,6 +79,15 @@ public class UniversityApiController(IUniversityService universityService) : Con
         [FromBody] CreateStudentRequest request)
     {
         var result = await _universityService.CreateStudent(request.StudentName, universityName);
+
+        return HandleResult(result);
+    }
+
+    [HttpGet("{universityName:required}/student/{studentName:required}/course")]
+    public async Task<IActionResult> GetStudentCourses([FromRoute] string universityName,
+        [FromRoute] string studentName)
+    {
+        var result = await _universityService.GetStudentCourses(studentName, universityName);
 
         return HandleResult(result);
     }

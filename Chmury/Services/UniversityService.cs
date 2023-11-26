@@ -15,6 +15,7 @@ public interface IUniversityService
     Task<OneOf<Success, string>> CreateCourse(string courseName, string universityName);
     Task<OneOf<Success<Professors>, string>> GetUniversityProfessors(string universityName);
     Task<OneOf<Success<Courses>, string>> GetUniversityCourses(string universityName);
+
     Task<OneOf<Success, string>> AssignProfessorToCourse(string professorName,
         string courseName, string universityName);
 
@@ -28,6 +29,11 @@ public interface IUniversityService
         string advancedCourseName, string universityName);
 
     Task<OneOf<Success<List<UniversityDto>>, string>> GetUniversities(string searchPhrase = "");
+    Task<OneOf<Success<Students>, string>> GetStudents();
+    Task<OneOf<Success<Courses>, string>> GetCourses();
+    Task<OneOf<Success<Professors>, string>> GetProfessors();
+    Task<OneOf<Success<Courses>, string>> GetStudentCourses(string studentName, string universityName);
+    Task<OneOf<Success<Courses>, string>> GetProfessorCourses(string professorName, string universityName);
 }
 
 public class UniversityService(INeo4jService neo4JService) : IUniversityService
@@ -76,7 +82,7 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
                  """;
         _parameters.Add("universityName", universityName);
 
-        return await _neo4JService.ReadListAsync<ProfessorDto>(_query, "professor", _parameters);
+        return await _neo4JService.ReadListAsync<ProfessorDto>(_query, _parameters);
     }
 
     public async Task<OneOf<Success<Courses>, string>> GetUniversityCourses(string universityName)
@@ -87,7 +93,7 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
                  """;
         _parameters.Add("universityName", universityName);
 
-        return await _neo4JService.ReadListAsync<CourseDto>(_query, "course", _parameters);
+        return await _neo4JService.ReadListAsync<CourseDto>(_query, _parameters);
     }
 
     public async Task<OneOf<Success, string>> AssignProfessorToCourse(string professorName, string courseName,
@@ -114,7 +120,7 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
                  """;
         _parameters.Add("universityName", universityName);
 
-        return await _neo4JService.ReadListAsync<StudentDto>(_query, "student", _parameters);
+        return await _neo4JService.ReadListAsync<StudentDto>(_query, _parameters);
     }
 
     public async Task<OneOf<Success, string>> CreateStudent(string studentName, string universityName)
@@ -136,7 +142,7 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
                  MATCH (university:University {name: $universityName})
                  MATCH (student:Student {name: $studentName})-[:LEARNS_AT]->(university)
                  MATCH (course:Course {name: $courseName})-[:LED_ON]->(university)
-                 MERGE (student)-[:Enrolled_Into]->(course)
+                 MERGE (student)-[:ENROLLED_INTO]->(course)
                  """;
         _parameters.Add("studentName", studentName);
         _parameters.Add("courseName", courseName);
@@ -170,7 +176,63 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
                  """;
         _parameters.Add("searchPhrase", searchPhrase);
 
-        return await _neo4JService.ReadListAsync<UniversityDto>(_query, "u", _parameters);
+        return await _neo4JService.ReadListAsync<UniversityDto>(_query, _parameters);
+    }
+
+    public async Task<OneOf<Success<Students>, string>> GetStudents()
+    {
+        _query = """
+                 MATCH (s:Student)-[:LEARNS_AT]->(u:University)
+                 RETURN s.name AS name, u.name AS universityName
+                 """;
+
+        return await _neo4JService.ReadListAsync<StudentDto>(_query, new List<string> { "name", "universityName" });
+    }
+
+    public async Task<OneOf<Success<Courses>, string>> GetCourses()
+    {
+        _query = """
+                 MATCH (c:Course)-[:LED_ON]->(u:University)
+                 RETURN c.name AS name, u.name AS universityName
+                 """;
+
+        return await _neo4JService.ReadListAsync<CourseDto>(_query, new List<string> { "name", "universityName" });
+    }
+
+    public async Task<OneOf<Success<Professors>, string>> GetProfessors()
+    {
+        _query = """
+                 MATCH (p:Professor)-[:WORKS_AT]->(u:University)
+                 RETURN p.name AS name, u.name AS universityName
+                 """;
+
+        return await _neo4JService.ReadListAsync<ProfessorDto>(_query, new List<string> { "name", "universityName" });
+    }
+
+    public async Task<OneOf<Success<Courses>, string>> GetStudentCourses(string studentName, string universityName)
+    {
+        _query = """
+                 MATCH (u:University {name: $universityName})
+                 MATCH (u)<-[:LEARNS_AT]-(student:Student {name: $studentName})-[:ENROLLED_INTO]->(course:Course)-[:LED_ON]->(u)
+                 RETURN course
+                 """;
+        _parameters.Add("studentName", studentName);
+        _parameters.Add("universityName", universityName);
+
+        return await _neo4JService.ReadListAsync<CourseDto>(_query, _parameters);
+    }
+
+    public async Task<OneOf<Success<Courses>, string>> GetProfessorCourses(string professorName, string universityName)
+    {
+        _query = """
+                 MATCH (u:University {name: $universityName})
+                 MATCH (u)<-[:WORKS_AT]-(professor:Professor {name: $professorName})-[:TEACHES]->(course:Course)-[:LED_ON]->(u)
+                 RETURN course
+                 """;
+        _parameters.Add("professorName", professorName);
+        _parameters.Add("universityName", universityName);
+
+        return await _neo4JService.ReadListAsync<CourseDto>(_query, _parameters);
     }
 
     private async Task<OneOf<Success, string>> Create()

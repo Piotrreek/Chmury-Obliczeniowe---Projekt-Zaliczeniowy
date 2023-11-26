@@ -1,0 +1,71 @@
+@model Chmury.Models.ManageProfessorsDto
+<div class="content">
+    <div>
+        <h2>Istniejący profesorowie</h2>
+        <table>
+            <thead>
+            <th>Imię i nazwisko</th>
+            <th>Uczelnia</th>
+            <th>Prowadzone kursy</th>
+            </thead>
+            <tbody>
+            @foreach (var s in Model.Professors)
+            {
+                <tr>
+                    <td>@s.Name</td>
+                    <td>@s.UniversityName</td>
+                    <td class="btn" onclick="getProfessorCourses(`@s.UniversityName`, `@s.Name`)">Zobacz</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <h2 class="see-results__heading"></h2>
+        <ul class="see-results"></ul>
+        <div class="see-results__error"></div>
+    </div>
+</div>
+<h2>Dodaj profesora</h2>
+<form>
+    <div>
+        <label for="professor-name">Imię i nazwisko</label>
+        <input id="professor-name" name="professor-name" class="professor-name"/>
+    </div>
+    <div>
+        <label for="university">Uczelnia</label>
+        <select id="university" name="university" class="university">
+            @foreach (var u in Model.Universities)
+            {
+                <option value="@u.Name">@u.Name</option>
+            }
+        </select>
+    </div>
+    <span class="error"></span>
+    <button onclick="createProfessor()">Dodaj</button>
+    <div>
+        <span class="response-info"></span>
+    </div>
+</form>
+<h2>Przypisz profesora do kursu</h2>
+<form>
+    <div>
+        <label for="professor">Imię i nazwisko profesora</label>
+        <select id="professor" name="professor" class="professor">
+            @foreach (var s in Model.Professors)
+            {
+                <option value="@s.Name-@s.UniversityName">@s.Name - @s.UniversityName</option>
+            }
+        </select>
+    </div>
+    <div>
+        <label for="course">Nazwa kursu</label>
+        <select id="course" class="course" name="course">
+            @foreach (var c in Model.Courses)
+            {
+                <option value="@c.Name-@c.UniversityName">@c.Name - @c.UniversityName</option>
+            }
+        </select>
+    </div>
+    <button onclick="assignProfessorToCourse()">Zapisz</button>
+</form>

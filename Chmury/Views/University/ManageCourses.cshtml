@@ -1,0 +1,47 @@
+@model Chmury.Models.ManageCoursesDto
+<div class="content">
+    <div>
+        <h2>Istniejące kursy</h2>
+        <table>
+            <thead>
+            <th>Nazwa</th>
+            <th>Uczelnia</th>
+            </thead>
+            <tbody>
+            @foreach (var s in Model.Courses)
+            {
+                <tr>
+                    <td>@s.Name</td>
+                    <td>@s.UniversityName</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <h2 class="see-results__heading"></h2>
+        <ul class="see-results"></ul>
+        <div class="see-results__error"></div>
+    </div>
+</div>
+<h2>Dodaj kurs</h2>
+<form>
+    <div>
+        <label for="course-name">Nazwa kursu</label>
+        <input id="course-name" name="course-name" class="course-name"/>
+    </div>
+    <div>
+        <label for="university">Uczelnia</label>
+        <select id="university" name="university" class="university">
+            @foreach (var u in Model.Universities)
+            {
+                <option value="@u.Name">@u.Name</option>
+            }
+        </select>
+    </div>
+    <span class="error"></span>
+    <button onclick="createCourse()">Dodaj</button>
+    <div>
+        <span class="response-info"></span>
+    </div>
+</form>

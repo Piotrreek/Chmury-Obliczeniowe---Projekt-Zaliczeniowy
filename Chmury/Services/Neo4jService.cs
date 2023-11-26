@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Chmury.Infrastructure;
 using Microsoft.Extensions.Options;
@@ -11,7 +12,10 @@ public interface INeo4jService : IAsyncDisposable
 {
     Task<OneOf<Success, string>> WriteAsync<T>(string query, IDictionary<string, object>? parameters = null);
 
-    Task<OneOf<Success<List<T>>, string>> ReadListAsync<T>(string query, string returnObjectKey,
+    Task<OneOf<Success<List<T>>, string>> ReadListAsync<T>(string query,
+        IDictionary<string, object>? parameters = null);
+
+    Task<OneOf<Success<List<T>>, string>> ReadListAsync<T>(string query, IReadOnlyCollection<string> keys,
         IDictionary<string, object>? parameters = null);
 }
 
@@ -40,10 +44,16 @@ public class Neo4jService : INeo4jService
         }
     }
 
-    public async Task<OneOf<Success<List<T>>, string>> ReadListAsync<T>(string query, string returnObjectKey,
+    public async Task<OneOf<Success<List<T>>, string>> ReadListAsync<T>(string query,
         IDictionary<string, object>? parameters = null)
     {
-        return await ExecuteReadTransactionAsync<T>(query, returnObjectKey, parameters);
+        return await ExecuteReadTransactionAsync<T>(query, parameters);
+    }
+
+    public async Task<OneOf<Success<List<T>>, string>> ReadListAsync<T>(string query, IReadOnlyCollection<string> keys,
+        IDictionary<string, object>? parameters = null)
+    {
+        return await ExecuteReadTransactionAsync<T>(query, keys, parameters);
     }
 
     public async ValueTask DisposeAsync()
@@ -52,7 +62,7 @@ public class Neo4jService : INeo4jService
     }
 
     private async Task<OneOf<Success<List<T>>, string>> ExecuteReadTransactionAsync<T>(string query,
-        string returnObjectKey, IDictionary<string, object>? parameters)
+        IDictionary<string, object>? parameters)
     {
         try
         {
@@ -70,11 +80,54 @@ public class Neo4jService : INeo4jService
                         {
                             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                         });
+                    
                     list.Add(JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
                     {
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                     })!);
                 }
+
+                return list;
+            });
+
+            return new Success<List<T>>(result);
+        }
+        catch (Exception e)
+        {
+            return e.Message;
+        }
+    }
+
+    private async Task<OneOf<Success<List<T>>, string>> ExecuteReadTransactionAsync<T>(string query,
+        IReadOnlyCollection<string> keys, IDictionary<string, object>? parameters)
+    {
+        try
+        {
+            parameters = parameters ?? new Dictionary<string, object>();
+
+            var result = await _session.ExecuteReadAsync(async tx =>
+            {
+                var res = await tx.RunAsync(query, parameters);
+                var builder = new StringBuilder("[");
+
+                while (await res.FetchAsync())
+                {
+                    builder.Append("{");
+                    foreach (var key in keys)
+                    {
+                        builder.Append($""" "{key}": "{res.Current[key]}", """);
+                    }
+
+                    builder.Append("},");
+                }
+
+                builder.Append("]");
+
+                var list = JsonSerializer.Deserialize<List<T>>(builder.ToString(), new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    AllowTrailingCommas = true
+                }) ?? new List<T>();
 
                 return list;
             });
