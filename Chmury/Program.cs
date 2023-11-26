@@ -14,6 +14,7 @@ if (builder.Environment.IsDevelopment())
     });
 }
 
+builder.Services.AddMvc();
 builder.Services.AddControllers();
 builder.Services.Configure<Neo4jSettings>(builder.Configuration.GetSection("Neo4j"));
 
