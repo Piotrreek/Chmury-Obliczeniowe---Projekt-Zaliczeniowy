@@ -23,11 +23,28 @@ public class UniversityApiController(IUniversityService universityService) : Con
         );
     }
 
+    [HttpDelete("{universityName:required}")]
+    public async Task<IActionResult> DeleteUniversity([FromRoute] string universityName)
+    {
+        var result = await _universityService.DeleteUniversity(universityName);
+
+        return HandleResult(result);
+    }
+    
     [HttpPost("{universityName:required}/professor")]
     public async Task<IActionResult> CreateProfessor([FromRoute] string universityName,
         [FromBody] CreateProfessorRequest request)
     {
         var result = await _universityService.CreateProfessor(universityName, request.ProfessorName);
+
+        return HandleResult(result);
+    }
+    
+    [HttpDelete("{universityName:required}/professor/{professorName:required}")]
+    public async Task<IActionResult> DeleteProfessor([FromRoute] string universityName,
+        [FromRoute] string professorName)
+    {
+        var result = await _universityService.DeleteProfessor(universityName, professorName);
 
         return HandleResult(result);
     }

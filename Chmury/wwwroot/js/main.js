@@ -4,6 +4,14 @@ const RelationType = {
     Course: "course"
 }
 
+const deleteUniversity = async (universityName) => {
+    await httpDelete(`/university/${universityName}`);
+}
+
+const deleteProfessor = async (professorName, universityName) => {
+    await httpDelete(`/university/${universityName}/professor/${professorName}`);
+}
+
 const createUniversity = async () => {
     const name = document.querySelector(".university-name")?.value;
     const error = document.querySelector(".error");
@@ -175,6 +183,20 @@ const httpGet = async (url) => {
     const error = document.querySelector(".see-results__error");
     error.innerText = "Wystąpił błąd po stronie serwera.";
     return null;
+}
+
+const httpDelete = async (url) => {
+    const response = await fetch(url, {
+        method: 'DELETE'
+    })
+
+    const responseInfo = document.querySelector('.response-info');
+    if (!response.ok) {
+        responseInfo.innerText = "Wystąpił błąd po stronie serwera.";
+        return;
+    }
+
+    responseInfo.innerText = "Operacja przebiegła pomyślnie";
 }
 
 const httpPost = async (url, body = null) => {

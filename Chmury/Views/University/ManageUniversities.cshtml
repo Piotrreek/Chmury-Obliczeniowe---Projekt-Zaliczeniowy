@@ -8,6 +8,7 @@
             <th>Zobacz studentów</th>
             <th>Zobacz profesorów</th>
             <th>Zobacz kursy</th>
+            <th>Usuń</th>
             </thead>
             <tbody>
             @foreach (var u in Model)
@@ -17,6 +18,7 @@
                     <td class="btn" onclick="getUniversityStudents(`@u.Name`)">Zobacz</td>
                     <td class="btn" onclick="getUniversityProfessors(`@u.Name`)">Zobacz</td>
                     <td class="btn" onclick="getUniversityCourses(`@u.Name`)">Zobacz</td>
+                    <td class="btn" onclick="deleteUniversity(`@u.Name`)">Usuń</td>
                 </tr>
             }
             </tbody>

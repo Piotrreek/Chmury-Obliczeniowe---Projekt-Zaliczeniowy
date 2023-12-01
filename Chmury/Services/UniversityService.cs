@@ -12,6 +12,7 @@ public interface IUniversityService
 {
     Task<OneOf<Success, string>> CreateUniversity(string universityName);
     Task<OneOf<Success, string>> CreateProfessor(string universityName, string professorName);
+    Task<OneOf<Success, string>> DeleteProfessor(string universityName, string professorName);
     Task<OneOf<Success, string>> CreateCourse(string courseName, string universityName);
     Task<OneOf<Success<Professors>, string>> GetUniversityProfessors(string universityName);
     Task<OneOf<Success<Courses>, string>> GetUniversityCourses(string universityName);
@@ -34,6 +35,7 @@ public interface IUniversityService
     Task<OneOf<Success<Professors>, string>> GetProfessors();
     Task<OneOf<Success<Courses>, string>> GetStudentCourses(string studentName, string universityName);
     Task<OneOf<Success<Courses>, string>> GetProfessorCourses(string professorName, string universityName);
+    Task<OneOf<Success, string>> DeleteUniversity(string universityName);
 }
 
 public class UniversityService(INeo4jService neo4JService) : IUniversityService
@@ -47,9 +49,23 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
         _query = "MERGE (:University {name: $universityName})";
         _parameters.Add("universityName", universityName);
 
-        return await Create();
+        return await SendQueryAsync();
     }
 
+    public async Task<OneOf<Success, string>> DeleteUniversity(string universityName)
+    {
+        _query = """
+                 MATCH (u:University {name: $universityName})
+                 OPTIONAL MATCH (p:Professor)-[:WORKS_AT]->(u)
+                 OPTIONAL MATCH (s:Student)-[:LEARNS_AT]->(u)
+                 OPTIONAL MATCH (c:Course)-[:LED_ON]->(u)
+                 DETACH DELETE c,s,p,u
+                 """;
+        _parameters.Add("universityName", universityName);
+
+        return await SendQueryAsync();
+    }
+    
     public async Task<OneOf<Success, string>> CreateProfessor(string universityName, string professorName)
     {
         _query = """
@@ -59,7 +75,19 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
         _parameters.Add("universityName", universityName);
         _parameters.Add("professorName", professorName);
 
-        return await Create();
+        return await SendQueryAsync();
+    }
+
+    public async Task<OneOf<Success, string>> DeleteProfessor(string universityName, string professorName)
+    {
+        _query = """
+                 MATCH (p:Professor {name: $professorName})-[:WORKS_AT]->(:University {name: $universityName})
+                 DETACH DELETE p
+                 """;
+        _parameters.Add("universityName", universityName);
+        _parameters.Add("professorName", professorName);
+
+        return await SendQueryAsync();
     }
 
     public async Task<OneOf<Success, string>> CreateCourse(string courseName, string universityName)
@@ -71,7 +99,7 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
         _parameters.Add("courseName", courseName);
         _parameters.Add("universityName", universityName);
 
-        return await Create();
+        return await SendQueryAsync();
     }
 
     public async Task<OneOf<Success<Professors>, string>> GetUniversityProfessors(string universityName)
@@ -109,7 +137,7 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
         _parameters.Add("courseName", courseName);
         _parameters.Add("universityName", universityName);
 
-        return await Create();
+        return await SendQueryAsync();
     }
 
     public async Task<OneOf<Success<Students>, string>> GetUniversityStudents(string universityName)
@@ -132,7 +160,7 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
         _parameters.Add("studentName", studentName);
         _parameters.Add("universityName", universityName);
 
-        return await Create();
+        return await SendQueryAsync();
     }
 
     public async Task<OneOf<Success, string>> EnrollStudentToCourse(string studentName, string courseName,
@@ -148,7 +176,7 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
         _parameters.Add("courseName", courseName);
         _parameters.Add("universityName", universityName);
 
-        return await Create();
+        return await SendQueryAsync();
     }
 
     public async Task<OneOf<Success, string>> MarkOneCourseAsPrerequisiteToAnother(string prerequisiteCourseName,
@@ -164,7 +192,7 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
         _parameters.Add("prerequisiteCourseName", prerequisiteCourseName);
         _parameters.Add("universityName", universityName);
 
-        return await Create();
+        return await SendQueryAsync();
     }
 
     public async Task<OneOf<Success<List<UniversityDto>>, string>> GetUniversities(string searchPhrase = "")
@@ -235,7 +263,7 @@ public class UniversityService(INeo4jService neo4JService) : IUniversityService
         return await _neo4JService.ReadListAsync<CourseDto>(_query, _parameters);
     }
 
-    private async Task<OneOf<Success, string>> Create()
+    private async Task<OneOf<Success, string>> SendQueryAsync()
     {
         return await _neo4JService.WriteAsync<int>(_query, _parameters);
     }
